@@ -3,6 +3,8 @@
   color: #FFF;
   display: flex;
   height: 500px;
+  flex-flow: row;
+  flex-wrap: wrap;
 }
 
 .quiz-container.small, .quiz-container.quiet, .quiz-container.inline {
@@ -409,12 +411,17 @@
     display: block;
   }
 
-  .quiz-container .foreground {
+  .quiz-container .foreground, 
+  .quiz-container .background {
     flex-direction: row;
     align-items: center;
     padding: 0;
     gap: 100px; /* 1 column */
     flex: 0 0 100%;;
+  }
+
+  .quiz-container .section {
+    position: relative;
   }
 
   .quiz-container .foreground .text {
@@ -546,4 +553,15 @@
   justify-content: center;
   text-align: center;
 }
+
+
+
+a[href*='/tools/caas#'] {
+  visibility: hidden !important;
+}
+
+main .consonant-TopFilters-filtersWrapper:first-child {
+  padding-top: 2px;
+}
+
 
