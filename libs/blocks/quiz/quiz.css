@@ -541,27 +541,13 @@
 
 
 
-/* Importing caas styles */
+/* Adding style for quiz cards */
 
-
-.quiz-option-cards {
-  position: relative;
-  padding: var(--spacing-xxl) 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-m);
-  justify-content: center;
-  text-align: center;
+.consonant-CardsGrid--options {
+  grid-template-columns: repeat(auto-fit,minmax(100px,max-content));
 }
 
 
 
-a[href*='/tools/caas#'] {
-  visibility: hidden !important;
-}
-
-main .consonant-TopFilters-filtersWrapper:first-child {
-  padding-top: 2px;
-}
 
 
