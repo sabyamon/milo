@@ -2,7 +2,7 @@
   position: relative;
   color: #FFF;
   display: flex;
-  height: 650px;
+  height: auto;
   flex-flow: row;
   flex-wrap: wrap;
 }
@@ -531,6 +531,9 @@
   }
 }
 
+
+
+
 @media screen and (min-width: 1440px) {
   .quiz-container.large .foreground.container {
     max-width: var(--grid-container-width);
@@ -600,6 +603,20 @@ span.quiz-Button-label {
   color: #fff;
   font-size: 1.5rem;
   font-weight: 400;
+}
+
+
+.quiz-container .foreground .heading-XL {
+  font-size: 3rem;
+  line-height: 3.75rem;
+  margin: 0 0 27px;
+}
+
+
+.uar-genericQuiz-container .quiz-content-wrapper .quiz-container .quiz-heading {
+  font-size: 3rem;
+  line-height: 3.75rem;
+  margin: 0 0 27px;
 }
 
 
