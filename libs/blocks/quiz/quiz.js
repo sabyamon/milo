@@ -1,8 +1,12 @@
-import { html, signal, useEffect } from '../../deps/htm-preact.js';
+import { signal } from '../../deps/htm-preact.js';
 import { getConfig, loadStyle } from '../../utils/utils.js';
 
-const { miloLibs, codeRoot } = getConfig();
+const { codeRoot } = getConfig();
 loadStyle(`${codeRoot}/deps/caas.css`);
+
+const QUESTIONS_EP_NAME = 'questions.json';
+const STRINGS_EP_NAME = 'strings.json';
+const RESULTS_EP_NAME = 'results.json';
 
 const metrics = {
   prevQuestion: null,
@@ -13,24 +17,9 @@ const metrics = {
   nextAnswer: null,
 };
 
-let next = []; // contains the next state.
-// at the end it should have  only 'RESULT' remaining.
+let currentSelections = [], next = [], rootElement, questionsData = {}, stringsData = {}, resultsData = {}, flow = [];
 
-let currentSelections = [],
-  maxSelections = 3, //TODO: Needs to be dynamic
-  minSelections = 1; // TODO: Needs to be dynamic
-
-let rootElement;
-
-let questionsData = {};
-let stringsData = {};
-let resultsData = {};
-
-const QUESTIONS_EP_NAME = 'questions.json';
-const STRINGS_EP_NAME = 'strings.json';
-const RESULTS_EP_NAME = 'results.json';
-
-export const userJourney = signal(metrics);
+export const userJourney = signal(metrics); // Tracks the user's journey through the quiz flow.
 
 export default function init(el) {
   rootElement = el;
@@ -84,12 +73,11 @@ const collectStrings = () => {
   const object = stringsData.questions.data.find(
     (o) => o.q === userJourney.value.currentQuestion.questions
   );
+
   userJourney.value.currentQuestion.heading = object['heading'];
   userJourney.value.currentQuestion.subhead = object['sub-head'];
   userJourney.value.currentQuestion.btnText = object['btn'];
-  // userJourney.value.currentQuestion.maxSelections = object['max-selections'];
-  // userJourney.value.currentQuestion.minSelections = object['min-selections'];
-  decorateBlockForeground();
+  userJourney.value.currentQuestion.background = object['background'];
 };
 
 // Gather all questions
@@ -109,16 +97,17 @@ const collectQuestions = (questionIdentifier) => {
   // TODO: need better identifier of this element.
 
   rootElement.classList.add('quiz-container');
+  collectStrings();
 
   const children = rootElement.querySelectorAll(':scope > div');
   if (children.length > 0) {
     children[0].classList.add('background');
-    decorateBlockBg(children[0]);
+    decorateBlockBackground(children[0]);
   }
-  collectStrings();
+  decorateBlockForeground();
 };
 
-const decorateBlockBg = (node) => {
+const decorateBlockBackground = (node) => {
   const backgroundElemTpl = `<div data-valign="middle">
   <picture>
     <source type="image/webp" srcset="${userJourney.value.currentQuestion.background}" media="(min-width: 400px)">
@@ -185,12 +174,7 @@ const handleOptionSelection = (event) => {
   } else {
     currentSelections.push(clickedCardName); // Add selections data to an array
     clickedCard.classList.add('selected');
-    console.log('show me user journey ??', userJourney.value)
-    console.log('how many selected ??', currentSelections.length)
-    console.log('whats the max selection ??', parseInt(userJourney.value.currentQuestion['max-selections']))
-    console.log('whats the min selection ??', parseInt(userJourney.value.currentQuestion['min-selections']))
     if (currentSelections.length === parseInt(userJourney.value.currentQuestion['max-selections'])) {
-      // Find all the cards which do not have `selected` class in it and add a disabled option to it.
       const allCards = document.querySelectorAll('.quiz-option');
       allCards.forEach((card) => {
         if (!card.classList.contains('selected')) {
@@ -206,8 +190,6 @@ const handleOptionSelection = (event) => {
   } else {
     quizNextBtn.setAttribute('disabled', 'true');
   }
-
-  // console.log('currentSelections are : ', currentSelections);
 };
 
 /**
@@ -217,14 +199,13 @@ const handleNext = () => {
   // Reset maxSelections
   // Reset minSelections
   // Reset currentSelections
-  // console.log('clicked next');
   // find the next paths by popping elements from currentSelections.
   // Lets create the next array.
 
-  console.log(
-    'current selections while creating the next array:',
-    currentSelections
-  );
+  // console.log(
+  //   'current selections while creating the next array:',
+  //   currentSelections
+  // );
 
   currentSelections.forEach((selection) => {
     // for each elem in current selection, find its coresponding next element and push it to the next array.
@@ -237,9 +218,9 @@ const handleNext = () => {
         const nextArr = nextItem.next;
         const arr = nextArr.split(',');
         arr.forEach((elem) => {
-          console.log('Element we are trying to add now', elem);
-          console.log('how does the next array look? ', next);
-          console.log('Does array include the elem?', next.includes(elem));
+          // console.log('Element we are trying to add now', elem);
+          // console.log('how does the next array look? ', next);
+          // console.log('Does array include the elem?', next.includes(elem));
           if (!next.includes(elem)) {
             if (elem === 'RESET') {
               // if we encounter `RESET`, reset the next array and add new elements.
@@ -247,19 +228,29 @@ const handleNext = () => {
             }
             if (elem !== 'RESET') {
               // Add next element when its not `RESET`. TODO: combine these two logics.
-              console.log('Added to next array: ', elem);
+              // console.log('Added to next array: ', elem);
               next.push(elem);
             }
           }
-          console.log('next array after each try to add', next);
+          // console.log('next array after each try to add', next);
         });
       }
     });
 
     //     currentSelections = []; // It was here.. It was getting reset when two options were chosen.
-
-    popElementAndExecuteFlow(next);
   });
+  
+
+  // Add all the questions and answers selected here
+  const currentState = {
+    questionId : userJourney.value.currentQuestion.questions,
+    questionTitle : userJourney.value.currentQuestion.heading,
+    answers : currentSelections
+  }
+
+  flow.push(currentState)
+  popElementAndExecuteFlow(next);
+
 };
 
 const popElementAndExecuteFlow = (next) => {
@@ -289,6 +280,7 @@ const popElementAndExecuteFlow = (next) => {
  */
 const handleResultFlow = () => {
   console.log('We are at the end of the flow! Route to result page');
+  console.log('flow observed till now :: ', flow)
   // window.location.href = 'https://www.adobe.com';
 };
 
