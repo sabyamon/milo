@@ -169,6 +169,7 @@
 
 .quiz-container .text p:last-of-type {
   margin-bottom: 0;
+  font-size: 1.2rem;
 }
 
 .quiz-container .text .detail-M {
@@ -601,15 +602,16 @@ span.quiz-Button-label {
 
 .quiz-button-container .quiz-btn .quiz-Button-label {
   color: #fff;
-  font-size: 1.5rem;
-  font-weight: 400;
+  font-size: 1rem;
+  font-weight: 500;
 }
 
 
 .quiz-container .foreground .heading-XL {
-  font-size: 3rem;
+  font-size: 2.5rem;
   line-height: 3.75rem;
   margin: 0 0 27px;
+  font-weight: 900;
 }
 
 
@@ -637,6 +639,14 @@ TODO: Need to check if we can skip this somehow.
 
 .consonant-OneHalfCard-text, .consonant-OneHalfCard-title {
   text-align: center !important;
+  font-size: 14px !important;
+    font-weight: 800;
+    line-height: 1.375rem;
+}
+
+.consonant-OneHalfCard-text {
+  font-size: .675rem !important;
+  color: black !important;
 }
 
 .quiz-options-container {
@@ -665,19 +675,29 @@ TODO: Need to check if we can skip this somehow.
 
 .card.half-card.border.consonant-Card.consonant-OneHalfCard.quiz-option {
   background-color: hsla(0,0%,98%,.8);
-  min-width: 10.625rem;
+  min-width: 9.625rem;
   min-height: 13.75rem;
-  width: 10.625rem;
+  width: 9.625rem;
   margin: 0.9375rem;
   box-shadow: 10px 10px 6px 0 rgb(0 0 0 / 16%);
   border: 1px solid #fff;
   border-radius: 0.5rem;
   cursor: pointer;
+  height: 10rem;
 }
 
 .card.half-card.border.consonant-Card.consonant-OneHalfCard.quiz-option.selected {
   background-color: #fafafa;
   outline: none;
+}
+
+.card.half-card.border.consonant-Card.consonant-OneHalfCard.quiz-option.selected .consonant-OneHalfCard-title {
+  color: #3273de !important;
+  font-weight: 900;
+}
+
+.card.half-card.border.consonant-Card.consonant-OneHalfCard.quiz-option.selected .consonant-OneHalfCard-text {
+  color: #3273de !important;
 }
 
 .card.half-card.border.consonant-Card.consonant-OneHalfCard.quiz-option:hover {
@@ -698,6 +718,18 @@ TODO: Need to check if we can skip this somehow.
   align-items: center;
   justify-content: center;
 }
+
+.consonant-OneHalfCard-cover {
+  display: flex !important;
+  padding: 0 !important;
+  background: transparent !important;
+  width: auto !important;
+  height: 7.875rem !important;
+  align-items: center;
+  justify-content: center;
+}
+
+
 
 .card.half-card.border.consonant-Card.consonant-OneHalfCard.quiz-option .icon {
   width: 4rem !important;

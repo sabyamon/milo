@@ -1,20 +1,17 @@
 import { signal } from '../../deps/htm-preact.js';
-import { getConfig, loadStyle } from '../../utils/utils.js';
+import { getConfig, loadStyle, loadScript } from '../../utils/utils.js';
 
 const { codeRoot } = getConfig();
 loadStyle(`${codeRoot}/deps/caas.css`);
+loadScript(`${codeRoot}/deps/logipar.js`)
 
 const QUESTIONS_EP_NAME = 'questions.json';
 const STRINGS_EP_NAME = 'strings.json';
 const RESULTS_EP_NAME = 'results.json';
 
 const metrics = {
-  prevQuestion: null,
-  prevAnswer: null,
   currentQuestion: null,
   currentAnswer: null,
-  nextQuestion: null,
-  nextAnswer: null,
 };
 
 let currentSelections = [], next = [], rootElement, questionsData = {}, stringsData = {}, resultsData = {}, flow = [];
@@ -281,8 +278,55 @@ const popElementAndExecuteFlow = (next) => {
 const handleResultFlow = () => {
   console.log('We are at the end of the flow! Route to result page');
   console.log('flow observed till now :: ', flow)
-  // window.location.href = 'https://www.adobe.com';
+  let res = parseResultData(flow);
+  let redirectUrl = 'https://main--milo--adobecom.hlx.page/drafts/sabya/quiz-2/photoshop-results' +
+  '?products=' + res.primary + '&' + buildQueryParam();
+  window.location.href = redirectUrl;
 };
+
+const buildQueryParam = () => {
+  return flow.reduce(function(str, el, i) {
+    return str + (i > 0 ? '&' : '') + el.questionId + '=' + el.answers  
+  }, '')
+}
+
+const parseResultData = (answers) => {
+  console.log('result data :: ', window.milo.results)
+  const results = window.milo.results.result.data.reduce((resultObj, resultMap) => {
+    let hasMatch = false;
+    const resultRow = Object.entries(resultMap);
+    for (let i = 0; i < resultRow.length; i++) {
+      const key = resultRow[i][0];
+      const val = resultRow[i][1];
+      if (key.startsWith('q-') && val) {
+        const answer = answers.find(a => a.questionId === key);
+        if (answer.answers.includes(val)) {
+          hasMatch = true;
+        } else {
+          // q-question value did not match any answers, entire row does not match
+          return resultObj;
+        }
+      }
+    }
+    if (hasMatch) {
+      resultObj.primary = resultObj.primary.concat(resultMap['result-primary'].split(','));
+      resultObj.secondary = resultObj.secondary.concat(resultMap['result-secondary'].split(','));
+    }
+
+    return resultObj;
+  }, {
+    primary: [],
+    secondary: [],
+  });
+
+  results.primary = [...new Set(results.primary.filter(Boolean))];
+  results.secondary = [...new Set(results.secondary.filter(Boolean))];
+
+  return results;
+};
+
+
+
 
 const createOption = (optionsData) => {
   let domElem = '';
@@ -294,7 +338,7 @@ const createOption = (optionsData) => {
       domElem +
         `<div class="card half-card border consonant-Card consonant-OneHalfCard quiz-option" data-card-name="${cardData.options}">
           ${cardIcon ? `<div class="consonant-OneHalfCard-image"><img src="${cardIcon}" alt="Video" class="icon"></div>` : ''}
-          ${coverImage ? `<div class="consonant-OneHalfCard-img" style="background-image: url('${coverImage}');"></div>` : ''}
+          ${coverImage ? `<div class="consonant-OneHalfCard-cover" style="background-image: url('${coverImage}') !important;"></div>` : ''}
           <div class="consonant-OneHalfCard-inner">
             <div data-valign="middle">  
               <h3 id="lorem-ipsum-dolor-sit-amet-3" class="consonant-OneHalfCard-title">${
