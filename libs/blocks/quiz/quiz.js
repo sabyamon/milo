@@ -3,7 +3,7 @@ import { getConfig, loadStyle, loadScript } from '../../utils/utils.js';
 
 const { codeRoot } = getConfig();
 loadStyle(`${codeRoot}/deps/caas.css`);
-loadScript(`${codeRoot}/deps/logipar.js`)
+loadScript(`${codeRoot}/deps/logipar.js`);
 
 const QUESTIONS_EP_NAME = 'questions.json';
 const STRINGS_EP_NAME = 'strings.json';
@@ -14,7 +14,13 @@ const metrics = {
   currentAnswer: null,
 };
 
-let currentSelections = [], next = [], rootElement, questionsData = {}, stringsData = {}, resultsData = {}, flow = [];
+let currentSelections = [],
+  next = [],
+  rootElement,
+  questionsData = {},
+  stringsData = {},
+  resultsData = {},
+  flow = [];
 
 export const userJourney = signal(metrics); // Tracks the user's journey through the quiz flow.
 
@@ -44,7 +50,7 @@ async function getQuestions() {
   const qData = await response.json();
   window.milo = window.milo || {};
   window.milo.questions = qData;
-  questionsData = qData;
+  questionsData = qData; // delete this TODO
   return qData;
 }
 
@@ -77,8 +83,10 @@ const collectStrings = () => {
   userJourney.value.currentQuestion.background = object['background'];
 };
 
+
 // Gather all questions
 const collectQuestions = (questionIdentifier) => {
+
   // If there is no questions, the data is malformed.
   if (questionIdentifier !== undefined) {
     questionsData.questions.data.forEach((q) => {
@@ -171,7 +179,10 @@ const handleOptionSelection = (event) => {
   } else {
     currentSelections.push(clickedCardName); // Add selections data to an array
     clickedCard.classList.add('selected');
-    if (currentSelections.length === parseInt(userJourney.value.currentQuestion['max-selections'])) {
+    if (
+      currentSelections.length ===
+      parseInt(userJourney.value.currentQuestion['max-selections'])
+    ) {
       const allCards = document.querySelectorAll('.quiz-option');
       allCards.forEach((card) => {
         if (!card.classList.contains('selected')) {
@@ -182,7 +193,10 @@ const handleOptionSelection = (event) => {
   }
 
   const quizNextBtn = document.querySelectorAll('.quiz-btn')[0];
-  if (currentSelections.length >= parseInt(userJourney.value.currentQuestion['min-selections'])) {
+  if (
+    currentSelections.length >=
+    parseInt(userJourney.value.currentQuestion['min-selections'])
+  ) {
     quizNextBtn.removeAttribute('disabled');
   } else {
     quizNextBtn.setAttribute('disabled', 'true');
@@ -236,18 +250,16 @@ const handleNext = () => {
 
     //     currentSelections = []; // It was here.. It was getting reset when two options were chosen.
   });
-  
 
   // Add all the questions and answers selected here
   const currentState = {
-    questionId : userJourney.value.currentQuestion.questions,
-    questionTitle : userJourney.value.currentQuestion.heading,
-    answers : currentSelections
-  }
+    questionId: userJourney.value.currentQuestion.questions,
+    questionTitle: userJourney.value.currentQuestion.heading,
+    answers: currentSelections,
+  };
 
-  flow.push(currentState)
+  flow.push(currentState);
   popElementAndExecuteFlow(next);
-
 };
 
 const popElementAndExecuteFlow = (next) => {
@@ -277,56 +289,135 @@ const popElementAndExecuteFlow = (next) => {
  */
 const handleResultFlow = () => {
   console.log('We are at the end of the flow! Route to result page');
-  console.log('flow observed till now :: ', flow)
+  console.log('flow observed till now :: ', flow);
   let res = parseResultData(flow);
-  let redirectUrl = 'https://main--milo--adobecom.hlx.page/drafts/sabya/quiz-2/photoshop-results' +
-  '?products=' + res.primary + '&' + buildQueryParam();
-  window.location.href = redirectUrl;
+
+  console.log('finally res object is:', res);
+  let redirectUrl =
+    'https://main--milo--adobecom.hlx.page/drafts/sabya/quiz-2/photoshop-results' +
+    '?products=' +
+    res.primary +
+    '&' +
+    buildQueryParam();
+
+  // window.location.href = redirectUrl;
 };
 
 const buildQueryParam = () => {
-  return flow.reduce(function(str, el, i) {
-    return str + (i > 0 ? '&' : '') + el.questionId + '=' + el.answers  
-  }, '')
-}
+  return flow.reduce(function (str, el, i) {
+    return str + (i > 0 ? '&' : '') + el.questionId + '=' + el.answers;
+  }, '');
+};
 
 const parseResultData = (answers) => {
-  console.log('result data :: ', window.milo.results)
-  const results = window.milo.results.result.data.reduce((resultObj, resultMap) => {
-    let hasMatch = false;
-    const resultRow = Object.entries(resultMap);
-    for (let i = 0; i < resultRow.length; i++) {
-      const key = resultRow[i][0];
-      const val = resultRow[i][1];
-      if (key.startsWith('q-') && val) {
-        const answer = answers.find(a => a.questionId === key);
-        if (answer.answers.includes(val)) {
-          hasMatch = true;
-        } else {
-          // q-question value did not match any answers, entire row does not match
-          return resultObj;
+  console.log('result data :: ', window.milo.results);
+  const results = window.milo.results.result.data.reduce(
+    (resultObj, resultMap) => {
+      let hasMatch = false;
+      const resultRow = Object.entries(resultMap);
+      for (let i = 0; i < resultRow.length; i++) {
+        const key = resultRow[i][0];
+        const val = resultRow[i][1];
+        if (key.startsWith('q-') && val) {
+          const answer = answers.find((a) => a.questionId === key);
+          if (answer && answer.answers.includes(val)) {
+            hasMatch = true;
+          } else {
+            // q-question value did not match any answers, entire row does not match
+            return resultObj;
+          }
         }
       }
-    }
-    if (hasMatch) {
-      resultObj.primary = resultObj.primary.concat(resultMap['result-primary'].split(','));
-      resultObj.secondary = resultObj.secondary.concat(resultMap['result-secondary'].split(','));
-    }
+      if (hasMatch) {
+        resultObj.primary = resultObj.primary.concat(
+          resultMap['result-primary'].split(',')
+        );
+        resultObj.secondary = resultObj.secondary.concat(
+          resultMap['result-secondary'].split(',')
+        );
+      }
 
-    return resultObj;
-  }, {
-    primary: [],
-    secondary: [],
-  });
+      return resultObj;
+    },
+    {
+      primary: [],
+      secondary: [],
+    }
+  );
 
   results.primary = [...new Set(results.primary.filter(Boolean))];
   results.secondary = [...new Set(results.secondary.filter(Boolean))];
 
+  // Find result destination page.
+
+  const matchedResults = findMatchForSelections(
+    window.milo.results['result-destination'].data,
+    results
+  );
+  console.log('matched results from Sanu bhai is:', matchedResults);
+
   return results;
 };
 
+const getRecomandationResults = (selectedDestination, deafult) =>
+  selectedDestination.length ? selectedDestination : deafult;
 
+// needs refactoring - can split to smaller functions
+const findMatchForSelections = (results, selections) => {
+  const recommendations = [];
+  const matchResults = [];
+  const defaultResult = [];
 
+  results.forEach((destination) => {
+    if (destination.result.indexOf('&') == -1) {
+      matchResults.push(destination.result);
+    }
+    if (destination.result == 'default') {
+      defaultResult.push(destination);
+    }
+  });
+
+  // direct match ac and express in results destination. Applying and condition
+  const isProductsMatched = selections.primary.every((product) =>
+    matchResults.includes(product)
+  );
+
+  if (isProductsMatched) {
+    // lr, ai
+    selections.primary.forEach((product) => {
+      results.forEach((destination) => {
+        if (destination.result == product) {
+          recommendations.push(destination);
+        }
+      });
+    });
+
+    return getRecomandationResults(recommendations, defaultResult);
+  }
+
+  const userSelectionLen = selections.primary.length; // 1 - lr
+
+  if (userSelectionLen <= 1) {
+    return defaultResult;
+  }
+
+  const compundResults = results.find((destination) => {
+    if (destination.result.indexOf('&') != -1 && destination.result.split('&').length === userSelectionLen) {
+      return destination;
+    }
+  });
+
+  const productList = compundResults.result.split('&');
+  const isCompoundProductsMatched = selections.primary.every((product, index) => {
+    return productList[index].includes(product);
+  });
+
+  if (isCompoundProductsMatched) {
+    recommendations.push(compundResults);
+
+    return recommendations;
+  }
+};
 
 const createOption = (optionsData) => {
   let domElem = '';
@@ -336,9 +427,19 @@ const createOption = (optionsData) => {
     const cardIcon = cardData.image;
     domElem =
       domElem +
-        `<div class="card half-card border consonant-Card consonant-OneHalfCard quiz-option" data-card-name="${cardData.options}">
-          ${cardIcon ? `<div class="consonant-OneHalfCard-image"><img src="${cardIcon}" alt="Video" class="icon"></div>` : ''}
-          ${coverImage ? `<div class="consonant-OneHalfCard-cover" style="background-image: url('${coverImage}') !important;"></div>` : ''}
+      `<div class="card half-card border consonant-Card consonant-OneHalfCard quiz-option" data-card-name="${
+        cardData.options
+      }">
+          ${
+            cardIcon
+              ? `<div class="consonant-OneHalfCard-image"><img src="${cardIcon}" alt="Video" class="icon"></div>`
+              : ''
+          }
+          ${
+            coverImage
+              ? `<div class="consonant-OneHalfCard-cover" style="background-image: url('${coverImage}') !important;"></div>`
+              : ''
+          }
           <div class="consonant-OneHalfCard-inner">
             <div data-valign="middle">  
               <h3 id="lorem-ipsum-dolor-sit-amet-3" class="consonant-OneHalfCard-title">${
