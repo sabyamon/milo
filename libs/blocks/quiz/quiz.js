@@ -1,4 +1,5 @@
-import { signal } from '../../deps/htm-preact.js';
+import { signal, render, html, useEffect, useState } from '../../deps/htm-preact.js';
+//TODO -  export Fragment from html-preact.js ans use it
 import { getConfig, loadStyle, loadScript } from '../../utils/utils.js';
 
 const { codeRoot } = getConfig();
@@ -10,6 +11,8 @@ const STRINGS_EP_NAME = 'strings.json';
 const RESULTS_EP_NAME = 'results.json';
 
 const metrics = {
+  questionList: {},
+  stringQuestionList: {},
   currentQuestion: null,
   currentAnswer: null,
 };
@@ -24,44 +27,196 @@ let currentSelections = [],
 
 export const userJourney = signal(metrics); // Tracks the user's journey through the quiz flow.
 
-export default function init(el) {
-  rootElement = el;
-  const link = el.querySelector(':scope > div > div > a');
-  window.milo = window.milo || {};
-  window.milo.quizConfigPath = link.text.toLowerCase();
-  getAllData();
+// const defaultBg = 'https://cc-prod.scene7.com/is/image/CCProdAuthor/DSK-Q1%20BKGD%202X?$pjpeg$&jpegSize=300&wid=1920';
+const defaultBg = '';
+
+function DecorateBlockBackground({ background = defaultBg }) {
+  return html `<div data-valign="middle">
+    <picture>
+      <source type="image/webp" srcset="${background}" media="(min-width: 400px)">
+      <source type="image/webp" srcset="${background}">
+      <source type="image/png" srcset="${background}"  media="(min-width: 400px)">
+      <img loading="eager" alt="" type="image/png" src="${background}"  width="750" height="375">
+    </picture>
+  </div>`;
 }
+
+const DecorateBlockForeground = ({ heading, subhead, btnText, optionsData }) => {
+  useEffect(() => {
+    console.log("called me")
+  }, [])
+  return html `<div class="foreground container">
+    <div data-valign="middle" class="text" daa-lh="${heading}">
+      <h2 id="heading-xl-marquee-standard-medium-left" class="heading-XL">
+      ${heading}
+      </h2>
+      <p class="detail-L">${subhead}</p>
+    </div>
+    
+  </div>`;
+};
+
+const OptionCard = ({ text, title, coverImage, cardIcon, options}) => {
+  const cardIconHtml = html `<div class="consonant-OneHalfCard-image">
+    <img src="${cardIcon}" alt="Video" class="icon">
+  </div>`;
+
+  const coverImageHtml = html `
+    <div class="consonant-OneHalfCard-cover" 
+      style="background-image: url('${coverImage}') !important;">
+    </div>`;
+
+  return html `<div class="card half-card border consonant-Card consonant-OneHalfCard quiz-option" 
+                    data-card-name="${options}">
+      ${cardIcon && cardIconHtml}
+      ${coverImage && coverImageHtml}
+      <div class="consonant-OneHalfCard-inner">
+        <div data-valign="middle">  
+          <h3 id="lorem-ipsum-dolor-sit-amet-3" class="consonant-OneHalfCard-title">${title}</h3>
+          <p class="consonant-OneHalfCard-text">${text}</p>
+        </div>
+      </div>
+    </div>`;
+}
+
+const CreateOptions = ({options}) => {
+  debugger
+  const dcardIcon = "https://cc-prod.scene7.com/is/image/CCProdAuthor/DSK-Q2-Illustration%20BKGD%202X?$pjpeg$&jpegSize=300&wid=1920";
+  const dcoverImage ="https://www.adobe.com/content/dam/cc/Images/app-recommender/multi-select/quiz-question-card-thumbnails/q2-illustration/1-PS-PaintDraw.png";
+  const dtext = "Paint, draw, or doodle like on paper";
+  const doptions = "raster";
+  // optionsData
+  return html `
+    <div>
+      ${options.data.map((option, index) => (
+        html `<div key=${index}>
+          <${OptionCard} 
+            text=${option.text}
+            title=${option.title} 
+            cardIcon=${option.cardIcon} 
+            coverImage=${option.coverImage}
+            options=${option.options} />
+        </div>`
+      ))}
+    </div>
+  `;
+}
+
+ const GetQuizOption = ( { btnText, options} ) => {
+  return html `
+    <div class="milo-card-wrapper consonant-Wrapper consonant-Wrapper--1200MaxWidth">
+      <div class="consonant-Wrapper-inner">
+        <div class="consonant-Wrapper-collection">
+          <div class="consonant-CardsGrid consonant-CardsGrid--5up consonant-CardsGrid--with4xGutter quiz-options-container">
+            <${CreateOptions} options=${options} />
+            </div>
+          </div>
+          <div class="quiz-button-container">
+            <button disabled="true" 
+              aria-label="Next" 
+              data-quiz-button="" 
+              class="spectrum-Button spectrum-Button--outline spectrum-Button--sizeXL quiz-btn" 
+              daa-ll="Filters|cc:app-reco|Q#1/Photo">
+                <span class="quiz-Button-label">${btnText}</span>
+            </button>
+          </div>
+        </div>
+      </div>`;
+};
+
+const getStringValue = (propName) => {
+  const currQ = userJourney.value.currentQuestion.questions;
+  const stringQuestionList = userJourney.value.stringQuestionList;
+  const qInContext = stringQuestionList[currQ];
+  return qInContext[propName];
+}
+
+const createOptionsDataArr = () => {
+  const currQ = userJourney.value.currentQuestion.questions;
+  const optionsData = userJourney.value.rawDataStrings[currQ];
+  return optionsData;
+}
+
+const App = () => {
+  // debugger;
+  return html `<div class="quiz-container">
+      <div class="background">
+        <${DecorateBlockBackground} background=${getStringValue('background')} />
+      </div>
+      <${DecorateBlockForeground} 
+        heading=${getStringValue('heading')} 
+        subhead=${getStringValue('sub-head')} 
+        btnText=${getStringValue('btn')}/>
+        <${GetQuizOption} btnText=${getStringValue('btn')} options=${createOptionsDataArr()} />
+  </div>`
+}
+
+let getConfigPath = function() {};
+
+export default async function init(el) {
+  rootElement = el;
+  getConfigPath = initConfigPath(rootElement);
+  await getAllData(); // Waiting for all the data to load and then calling the App.
+
+  render(html `<${App} />`, rootElement);
+}
+
+const initConfigPath = (roolElm) => (filepath) => {
+  const link = roolElm.querySelector('.quiz > div > div > a');
+  const quizConfigPath = link.text.toLowerCase();
+
+  return `${quizConfigPath}${filepath}`;
+}
+
+async function fetchContentOfFile(path) {
+  const response = await fetch(getConfigPath(path));
+  return await response.json();
+}
+
+
 
 async function getAllData() {
   try {
-    Promise.all([getQuestions(), getStrings(), getResult()]).then(function (
-      values
+    return Promise.all([fetchContentOfFile(QUESTIONS_EP_NAME), fetchContentOfFile(STRINGS_EP_NAME)]).then(function (
+      [questions, datastrings]
     ) {
-      collectQuestions();
-      //collectStrings()
+      console.log(questions, datastrings);
+      questions.questions.data.forEach((question) => {
+        userJourney.value.questionList[question.questions] = question;
+      });
+
+      datastrings.questions.data.forEach((question) => {
+        userJourney.value.stringQuestionList[question.q] = question;
+      });
+
+      userJourney.value.rawDataStrings = datastrings;
+      userJourney.value.currentQuestion = questions.questions.data[0];    
+      
     });
   } catch (ex) {
     console.log('Error while fetching data : ', ex);
   }
 }
 
-async function getQuestions() {
-  const response = await fetch(window.milo.quizConfigPath + QUESTIONS_EP_NAME);
-  const qData = await response.json();
-  window.milo = window.milo || {};
-  window.milo.questions = qData;
-  questionsData = qData; // delete this TODO
-  return qData;
-}
+// Gather all questions
+const collectQuestions = (questionIdentifier) => {
+  // If there is no questions, the data is malformed.
+  if (questionIdentifier !== undefined) {
+    questionsData.questions.data.forEach((q) => {
+      if (q.questions === questionIdentifier.trim()) {
+        userJourney.value.currentQuestion = q;
+      }
+    });
+  } else {
+    
+  }
 
-async function getStrings() {
-  const response = await fetch(window.milo.quizConfigPath + STRINGS_EP_NAME);
-  const sData = await response.json();
-  window.milo = window.milo || {};
-  window.milo.strings = sData;
-  stringsData = sData;
-  return sData;
-}
+
+  collectStrings();
+
+
+};
+
 
 async function getResult() {
   const response = await fetch(window.milo.quizConfigPath + RESULTS_EP_NAME);
@@ -83,60 +238,6 @@ const collectStrings = () => {
   userJourney.value.currentQuestion.background = object['background'];
 };
 
-
-// Gather all questions
-const collectQuestions = (questionIdentifier) => {
-
-  // If there is no questions, the data is malformed.
-  if (questionIdentifier !== undefined) {
-    questionsData.questions.data.forEach((q) => {
-      if (q.questions === questionIdentifier.trim()) {
-        userJourney.value.currentQuestion = q;
-      }
-    });
-  } else {
-    userJourney.value.currentQuestion = questionsData.questions.data[0];
-  }
-
-  // Find the parent element  `quiz` and treat that as the source of truth.
-  // TODO: need better identifier of this element.
-
-  rootElement.classList.add('quiz-container');
-  collectStrings();
-
-  const children = rootElement.querySelectorAll(':scope > div');
-  if (children.length > 0) {
-    children[0].classList.add('background');
-    decorateBlockBackground(children[0]);
-  }
-  decorateBlockForeground();
-};
-
-const decorateBlockBackground = (node) => {
-  const backgroundElemTpl = `<div data-valign="middle">
-  <picture>
-    <source type="image/webp" srcset="${userJourney.value.currentQuestion.background}" media="(min-width: 400px)">
-    <source type="image/webp" srcset="${userJourney.value.currentQuestion.background}">
-    <source type="image/png" srcset="${userJourney.value.currentQuestion.background}"  media="(min-width: 400px)">
-    <img loading="eager" alt="" type="image/png" src="${userJourney.value.currentQuestion.background}"  width="750" height="375">
-  </picture>
-</div>`;
-
-  node.innerHTML = backgroundElemTpl; // Adding the background image for the quiz block.
-};
-
-const decorateBlockForeground = () => {
-  const foregroundElemTpl = `<div class="foreground container">
-  <div data-valign="middle" class="text" daa-lh="${userJourney.value.currentQuestion.heading}">
-    <h2 id="heading-xl-marquee-standard-medium-left" class="heading-XL">
-    ${userJourney.value.currentQuestion.heading}
-    </h2>
-    <p class="detail-L">${userJourney.value.currentQuestion.subhead}</p>
-  </div>
-</div>`;
-  rootElement.insertAdjacentHTML('beforeend', foregroundElemTpl); // Adding foreground elements.
-  findAndInsertOptions();
-};
 
 const findAndInsertOptions = () => {
   const currQuestion = userJourney.value.currentQuestion.questions;
@@ -419,57 +520,3 @@ const findMatchForSelections = (results, selections) => {
   }
 };
 
-const createOption = (optionsData) => {
-  let domElem = '';
-  for (let index in optionsData) {
-    const cardData = optionsData[index];
-    const coverImage = cardData.cover;
-    const cardIcon = cardData.image;
-    domElem =
-      domElem +
-      `<div class="card half-card border consonant-Card consonant-OneHalfCard quiz-option" data-card-name="${
-        cardData.options
-      }">
-          ${
-            cardIcon
-              ? `<div class="consonant-OneHalfCard-image"><img src="${cardIcon}" alt="Video" class="icon"></div>`
-              : ''
-          }
-          ${
-            coverImage
-              ? `<div class="consonant-OneHalfCard-cover" style="background-image: url('${coverImage}') !important;"></div>`
-              : ''
-          }
-          <div class="consonant-OneHalfCard-inner">
-            <div data-valign="middle">  
-              <h3 id="lorem-ipsum-dolor-sit-amet-3" class="consonant-OneHalfCard-title">${
-                cardData.title
-              }</h3>
-              <p class="consonant-OneHalfCard-text">${cardData.text}</p>
-            </div>
-          </div>
-        </div>`;
-  }
-
-  return domElem;
-};
-
-export const getQuizOption = (currentQuestionOptions) => {
-  let option = '';
-  option = createOption(currentQuestionOptions);
-  return `
-    <div class="milo-card-wrapper consonant-Wrapper consonant-Wrapper--1200MaxWidth">
-      <div class="consonant-Wrapper-inner">
-        <div class="consonant-Wrapper-collection">
-          <div class="consonant-CardsGrid consonant-CardsGrid--5up consonant-CardsGrid--with4xGutter quiz-options-container">
-            ${option}
-            </div>
-          </div>
-          <div class="quiz-button-container">
-            <button disabled="true" aria-label="Next" data-quiz-button="" class="spectrum-Button spectrum-Button--outline spectrum-Button--sizeXL quiz-btn" daa-ll="Filters|cc:app-reco|Q#1/Photo">
-              <span class="quiz-Button-label">${userJourney.value.currentQuestion.btnText}</span>
-            </button>
-          </div>
-        </div>
-      </div>`;
-};

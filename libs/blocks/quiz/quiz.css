@@ -1,6 +1,4 @@
-.quiz {
-  display: none;
-}
+
 
 .quiz-container {
   position: relative;
@@ -423,6 +421,11 @@
     padding: 0;
     gap: 100px; /* 1 column */
     flex: 0 0 100%;;
+  }
+  
+  .quiz-container .foreground {
+    position: absolute;
+    top: 0;
   }
 
   .quiz-container .section {
