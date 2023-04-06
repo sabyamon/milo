@@ -1,15 +1,32 @@
-
-
 .quiz-container {
-  position: relative;
-  color: #FFF;
   display: flex;
-  height: auto;
-  flex-flow: row;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  flex-direction: column;
+  color: #FFF;
 }
 
-.quiz-container.small, .quiz-container.quiet, .quiz-container.inline {
+/* TODO - Delete this */
+#onetrust-consent-sdk {
+  display: none !important;
+}
+
+.quiz-option {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  flex: 1;
+  flex-direction: row;
+  width: auto;
+  margin: 5rem 0;
+  justify-content: center;
+  flex-wrap: wrap;
+  overflow-y: auto;
+}
+
+.quiz-container.small,
+.quiz-container.quiet,
+.quiz-container.inline {
   min-height: 360px;
 }
 
@@ -18,7 +35,9 @@
   margin-bottom: 0;
 }
 
-.quiz-container.light, .quiz-container.quiet, .quiz-container.inline {
+.quiz-container.light,
+.quiz-container.quiet,
+.quiz-container.inline {
   color: var(--text-color);
 }
 
@@ -98,6 +117,7 @@
 .quiz-container.split.small .foreground {
   order: 1;
 }
+
 .quiz-container.split.small .media {
   order: 2;
 }
@@ -245,7 +265,8 @@
 
 .quiz-container .media {
   order: 1;
-  width: var(--grid-container-width); /* 10 grid / 83% */
+  width: var(--grid-container-width);
+  /* 10 grid / 83% */
   margin: 0 auto;
 }
 
@@ -414,18 +435,15 @@
     display: block;
   }
 
-  .quiz-container .foreground, 
+  .quiz-container .foreground,
   .quiz-container .background {
     flex-direction: row;
     align-items: center;
     padding: 0;
-    gap: 100px; /* 1 column */
-    flex: 0 0 100%;;
-  }
-  
-  .quiz-container .foreground {
-    position: absolute;
-    top: 0;
+    gap: 100px;
+    /* 1 column */
+    flex: 0 0 100%;
+    ;
   }
 
   .quiz-container .section {
@@ -633,7 +651,7 @@ span.quiz-Button-label {
 /* Adding style for quiz cards */
 
 .consonant-CardsGrid--options {
-  grid-template-columns: repeat(auto-fit,minmax(100px,max-content));
+  grid-template-columns: repeat(auto-fit, minmax(100px, max-content));
 }
 
 
@@ -641,14 +659,15 @@ span.quiz-Button-label {
 TODO: Need to check if we can skip this somehow.
 */
 .consonant-CardsGrid--with4xGutter {
-  padding-bottom: 0px !important; 
+  padding-bottom: 0px !important;
 }
 
-.consonant-OneHalfCard-text, .consonant-OneHalfCard-title {
+.consonant-OneHalfCard-text,
+.consonant-OneHalfCard-title {
   text-align: center !important;
   font-size: 14px !important;
-    font-weight: 800;
-    line-height: 1.375rem;
+  font-weight: 800;
+  line-height: 1.375rem;
 }
 
 .consonant-OneHalfCard-text {
@@ -671,7 +690,7 @@ TODO: Need to check if we can skip this somehow.
   cursor: not-allowed;
   pointer-events: none;
   outline: none;
-  background-color: hsla(0,0%,98%,.8);
+  background-color: hsla(0, 0%, 98%, .8);
   box-shadow: 10px 10px 6px 0 rgb(0 0 0 / 16%);
 }
 
@@ -681,7 +700,7 @@ TODO: Need to check if we can skip this somehow.
 }
 
 .card.half-card.border.consonant-Card.consonant-OneHalfCard.quiz-option {
-  background-color: hsla(0,0%,98%,.8);
+  background-color: hsla(0, 0%, 98%, .8);
   min-width: 9.625rem;
   min-height: 13.75rem;
   width: 9.625rem;
@@ -712,7 +731,7 @@ TODO: Need to check if we can skip this somehow.
 }
 
 .consonant-OneHalfCard-inner {
-  background-color: transparent !important; 
+  background-color: transparent !important;
 }
 
 
@@ -742,12 +761,3 @@ TODO: Need to check if we can skip this somehow.
   width: 4rem !important;
   height: 4rem !important;
 }
-
-
-
-
-
-
-
-
-
