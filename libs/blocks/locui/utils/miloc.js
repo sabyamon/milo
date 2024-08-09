@@ -28,6 +28,7 @@ const ROLLOUT_ALL_AVAILABLE = ['completed', 'translated'];
 let waiting = false;
 
 async function getMilocUrl() {
+  console.log('fixing local debugging');
   const env = heading.value.env || null;
   const { miloc } = await getServiceConfig(origin, env);
   return miloc.url;
